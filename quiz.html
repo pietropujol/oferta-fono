@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Descubra o que está travando a alfabetização</title>
+<style>
+  :root{
+    --navy:#16294a;
+    --navy-dark:#0f1d36;
+    --orange:#eda23e;
+    --blue:#3b7ddb;
+    --blue-dark:#2a5fb0;
+    --red:#e53e2e;
+    --check:#2f6fed;
+    --text-dark:#1b2430;
+    --bg:#f4f5f7;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Nunito','Segoe UI',Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text-dark);
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{
+    max-width:480px;
+    margin:0 auto;
+    min-height:100vh;
+    background:#fff;
+    display:flex;
+    flex-direction:column;
+    box-shadow:0 0 40px rgba(0,0,0,0.08);
+  }
+  .header{
+    background:linear-gradient(180deg,var(--navy) 0%,var(--navy-dark) 100%);
+    color:#fff;
+    padding:28px 24px 22px;
+    text-align:center;
+  }
+  .header .stars{ color:var(--orange); font-size:18px; letter-spacing:2px; margin-bottom:8px;}
+  .header h1{
+    font-size:20px;
+    line-height:1.35;
+    margin:0;
+    font-weight:800;
+  }
+  .header h1 mark{
+    background:var(--orange);
+    color:var(--navy-dark);
+    padding:1px 6px;
+    border-radius:4px;
+    box-decoration-break:clone;
+    -webkit-box-decoration-break:clone;
+  }
+  .progress-wrap{
+    padding:16px 24px 0;
+  }
+  .progress-track{
+    background:#e6e9ef;
+    border-radius:999px;
+    height:10px;
+    overflow:hidden;
+  }
+  .progress-fill{
+    background:linear-gradient(90deg,var(--blue),var(--orange));
+    height:100%;
+    width:0%;
+    transition:width .35s ease;
+    border-radius:999px;
+  }
+  .progress-label{
+    font-size:12px;
+    color:#8a93a3;
+    margin-top:6px;
+    font-weight:700;
+    text-align:right;
+  }
+  .content{
+    flex:1;
+    padding:28px 24px 24px;
+    display:flex;
+    flex-direction:column;
+  }
+  .question{ display:none; flex-direction:column; animation:fadeIn .35s ease; }
+  .question.active{ display:flex; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+  .q-title{
+    font-size:19px;
+    font-weight:800;
+    color:var(--navy);
+    margin:0 0 20px;
+    line-height:1.35;
+  }
+  .options{ display:flex; flex-direction:column; gap:12px; }
+  .option{
+    border:2px solid #e2e6ed;
+    border-radius:14px;
+    padding:15px 16px;
+    font-size:15.5px;
+    font-weight:700;
+    color:var(--text-dark);
+    cursor:pointer;
+    transition:all .15s ease;
+    background:#fff;
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .option:hover{ border-color:var(--blue); background:#f5f9ff; }
+  .option.selected{
+    border-color:var(--blue);
+    background:#eaf2ff;
+    color:var(--blue-dark);
+  }
+  .option .bullet{
+    width:22px; height:22px; min-width:22px;
+    border-radius:50%;
+    border:2px solid #c7cedb;
+    display:flex; align-items:center; justify-content:center;
+    transition:all .15s ease;
+  }
+  .option.selected .bullet{
+    border-color:var(--blue);
+    background:var(--blue);
+  }
+  .option.selected .bullet::after{
+    content:"";
+    width:8px; height:8px;
+    border-radius:50%;
+    background:#fff;
+  }
+  @keyframes pop{
+    0%{ transform:scale(1); }
+    40%{ transform:scale(0.97); }
+    100%{ transform:scale(1); }
+  }
+  .option.selected{ animation:pop .25s ease; }
+  .nav-row{
+    margin-top:20px;
+    display:flex;
+    justify-content:flex-start;
+  }
+  .btn{
+    border:none;
+    border-radius:12px;
+    padding:15px 18px;
+    font-size:16px;
+    font-weight:800;
+    cursor:pointer;
+    width:100%;
+    transition:filter .15s ease, transform .05s ease;
+  }
+  .btn:active{ transform:scale(0.98); }
+  .btn-primary{
+    background:var(--blue);
+    color:#fff;
+  }
+  .btn-primary:disabled{
+    background:#c9d3e0;
+    cursor:not-allowed;
+  }
+  .btn-back{
+    background:transparent;
+    color:#8a93a3;
+    width:auto;
+    padding:15px 4px;
+    font-weight:700;
+    font-size:14px;
+  }
+  /* Loading / result screen */
+  .loading-screen{
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    flex:1;
+    padding:40px 24px;
+    text-align:center;
+  }
+  .loading-screen.active{ display:flex; }
+  .spinner{
+    width:56px; height:56px;
+    border-radius:50%;
+    border:5px solid #e2e6ed;
+    border-top-color:var(--blue);
+    animation:spin 0.9s linear infinite;
+    margin-bottom:26px;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg);} }
+  .loading-title{
+    font-size:19px;
+    font-weight:800;
+    color:var(--navy);
+    margin:0 0 10px;
+  }
+  .loading-sub{
+    font-size:14.5px;
+    color:#6b7280;
+    margin:0 0 22px;
+    min-height:20px;
+    font-weight:600;
+  }
+  .urgency-tag{
+    background:var(--red);
+    color:#fff;
+    font-weight:800;
+    font-size:12.5px;
+    letter-spacing:.5px;
+    padding:8px 14px;
+    border-radius:999px;
+    display:inline-block;
+  }
+  .fallback-btn{
+    margin-top:22px;
+    display:none;
+  }
+  .fallback-btn.show{ display:block; }
+  .footer-note{
+    text-align:center;
+    font-size:11.5px;
+    color:#a7aeb9;
+    padding:14px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="stars">★★★★★</div>
+    <h1 id="headerTitle">Descubra o que está <mark>travando a alfabetização</mark> da sua turma</h1>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-label" id="progressLabel">Pergunta 1 de 5</div>
+  </div>
+
+  <div class="content" id="quizContent">
+
+    <div class="question active" data-q="1">
+      <p class="q-title">Qual seu papel hoje?</p>
+      <div class="options" data-group="1">
+        <div class="option"><span class="bullet"></span>Sou professora de alfabetização</div>
+        <div class="option"><span class="bullet"></span>Sou mãe/responsável acompanhando em casa</div>
+        <div class="option"><span class="bullet"></span>Sou fonoaudióloga/psicopedagoga</div>
+        <div class="option"><span class="bullet"></span>Outro</div>
+      </div>
+    </div>
+
+    <div class="question" data-q="2">
+      <p class="q-title">Qual a maior dificuldade que você vê na criança?</p>
+      <div class="options" data-group="2">
+        <div class="option"><span class="bullet"></span>Não reconhece o som das letras</div>
+        <div class="option"><span class="bullet"></span>Não consegue juntar os sons pra formar sílaba/palavra</div>
+        <div class="option"><span class="bullet"></span>Troca letras na leitura ou na escrita</div>
+        <div class="option"><span class="bullet"></span>Ainda não sei identificar exatamente qual é</div>
+      </div>
+    </div>
+
+    <div class="question" data-q="3">
+      <p class="q-title">Hoje você usa algum material pronto ou cria as atividades do zero?</p>
+      <div class="options" data-group="3">
+        <div class="option"><span class="bullet"></span>Crio tudo do zero, toda semana</div>
+        <div class="option"><span class="bullet"></span>Uso um material pronto, mas não é completo</div>
+        <div class="option"><span class="bullet"></span>Não uso nada estruturado ainda</div>
+      </div>
+    </div>
+
+    <div class="question" data-q="4">
+      <p class="q-title">Quanto tempo por semana você gasta preparando esse tipo de atividade?</p>
+      <div class="options" data-group="4">
+        <div class="option"><span class="bullet"></span>Menos de 1 hora</div>
+        <div class="option"><span class="bullet"></span>Entre 1 e 3 horas</div>
+        <div class="option"><span class="bullet"></span>Mais de 3 horas (praticamente um turno inteiro)</div>
+      </div>
+    </div>
+
+    <div class="question" data-q="5">
+      <p class="q-title">Se existisse um material pronto, organizado por fonema e por letra, pra aplicar ainda essa semana, você usaria?</p>
+      <div class="options" data-group="5">
+        <div class="option"><span class="bullet"></span>Sim, quero ver agora</div>
+        <div class="option"><span class="bullet"></span>Quero saber mais antes</div>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn btn-back" id="backBtn" style="display:none;">&larr; Voltar</button>
+    </div>
+
+  </div>
+
+  <div class="loading-screen" id="loadingScreen">
+    <div class="spinner"></div>
+    <p class="loading-title">Analisando suas respostas...</p>
+    <p class="loading-sub" id="loadingSub">Identificando o perfil da sua turma</p>
+    <span class="urgency-tag">MATERIAL COM VAGAS LIMITADAS HOJE</span>
+    <div class="fallback-btn" id="fallbackBtn">
+      <button class="btn btn-primary" onclick="goToSalesPage()">Ver meu resultado agora</button>
+    </div>
+  </div>
+
+  <div class="footer-note">© Material de Consciência Fonológica</div>
+</div>
+
+<script>
+  const SALES_PAGE_URL = "https://nexusselect.shop";
+
+  const questions = Array.from(document.querySelectorAll('.question'));
+  const total = questions.length;
+  let current = 0;
+  const answers = {};
+
+  const backBtn = document.getElementById('backBtn');
+  const progressFill = document.getElementById('progressFill');
+  const progressLabel = document.getElementById('progressLabel');
+  let advancing = false;
+
+  function updateProgress(){
+    const pct = ((current) / total) * 100;
+    progressFill.style.width = pct + '%';
+    progressLabel.textContent = `Pergunta ${current+1} de ${total}`;
+  }
+
+  function showQuestion(idx){
+    questions.forEach((q,i)=> q.classList.toggle('active', i===idx));
+    backBtn.style.display = idx === 0 ? 'none' : 'block';
+    updateProgress();
+  }
+
+  questions.forEach((q, i)=>{
+    const group = q.dataset.q;
+    const opts = q.querySelectorAll('.option');
+    opts.forEach(opt=>{
+      opt.addEventListener('click', ()=>{
+        if(advancing) return;
+        opts.forEach(o=>o.classList.remove('selected'));
+        opt.classList.add('selected');
+        answers[group] = opt.textContent.trim();
+        advancing = true;
+        setTimeout(()=>{
+          if(current < total-1){
+            current++;
+            showQuestion(current);
+          } else {
+            finishQuiz();
+          }
+          advancing = false;
+        }, 380);
+      });
+    });
+  });
+
+  backBtn.addEventListener('click', ()=>{
+    if(current > 0){
+      current--;
+      showQuestion(current);
+    }
+  });
+
+  function finishQuiz(){
+    document.getElementById('quizContent').style.display = 'none';
+    document.querySelector('.header').style.display = 'none';
+    document.querySelector('.progress-wrap').style.display = 'none';
+    const loadingScreen = document.getElementById('loadingScreen');
+    loadingScreen.classList.add('active');
+
+    const loadingSub = document.getElementById('loadingSub');
+    const msgs = [
+      'Identificando o perfil da sua turma',
+      'Cruzando com o material ideal por fonema',
+      'Selecionando as atividades certas pra você'
+    ];
+    let i = 0;
+    loadingSub.textContent = msgs[0];
+    const msgInterval = setInterval(()=>{
+      i++;
+      if(i < msgs.length){ loadingSub.textContent = msgs[i]; }
+    }, 900);
+
+    // try auto-redirect after ~2.8s
+    setTimeout(()=>{
+      clearInterval(msgInterval);
+      goToSalesPage();
+    }, 2800);
+
+    // fallback button in case redirect gets blocked
+    setTimeout(()=>{
+      document.getElementById('fallbackBtn').classList.add('show');
+    }, 4500);
+  }
+
+  function goToSalesPage(){
+    window.location.href = SALES_PAGE_URL;
+  }
+
+  showQuestion(0);
+</script>
+</body>
+</html>
