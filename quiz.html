@@ -13,7 +13,7 @@ s.parentNode.insertBefore(t,s)}(window,document,'script',
 
 fbq('init', '2449366385589600');
 fbq('track', 'PageView');
-fbq('track', 'ViewContent');
+fbq('trackCustom', 'EntrouNoQuiz');
 </script>
 
 <noscript>
@@ -380,6 +380,9 @@ src="https://www.facebook.com/tr?id=2449366385589600&ev=PageView&noscript=1"/>
   });
 
   function finishQuiz(){
+    if (typeof fbq === 'function') {
+    fbq('trackCustom', 'ConcluiuQuiz');
+}
     document.getElementById('quizContent').style.display = 'none';
     document.querySelector('.header').style.display = 'none';
     document.querySelector('.progress-wrap').style.display = 'none';
